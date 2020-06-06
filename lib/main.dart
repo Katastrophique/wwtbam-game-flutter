@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-import 'package:countdown_flutter/countdown_flutter.dart';
+import 'dart:async';
 import 'quiz.dart';
 
 void main() {
@@ -30,48 +30,118 @@ class WWTBAMGame extends StatefulWidget {
 
 class _WWTBAMGameState extends State<WWTBAMGame> {
   Quiz quiz = new Quiz();
-//  int timerCount = 15;
-//  void countDownTimer() async {
-//    timerCount = 15;
-//    for (int x = 15; x > 0; x--) {
-//      await Future.delayed(Duration(milliseconds: 1500)).then((_) {
-//        setState(() {
-//          if(timerCount==1) checkAnswer(null);
-//          timerCount -= 1;
-//        });
-//      });
-//    }
-//  }
+  int _correct = 0;
+  Timer _timer;
+  int _start = 15;
+  int _qNumLocal=0;
 
-  void checkAnswer(String choice)
-  {
-    if(quiz.getQuestionNumber()>=15) {
-      Alert(context: context, title: "Who Wants to Be a Millionaire", desc: "GameOver").show();
-    }
+  void restartGame() async {
+    _qNumLocal=0;
+    _correct = 0;
+    quiz.reset();
+    startTimer();
+    score = [];
+    await new Future.delayed(const Duration(seconds: 1));
+    Navigator.pop(context);
+  }
+
+  void resetTimer() {
     setState(() {
-    if(choice==quiz.getQuestion().answer)
-    {
-      score.add(
-      Container(
-        height: 18.0,
-        width: 18.0,
-        margin: EdgeInsets.fromLTRB(0, 0, 0, 3),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(100), color: Colors.green),
-        child: Center(
-          child: Text(
-            quiz.getQuestionNumber().toString(),
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-      ));
+      _start = 15;
+    });
+  }
+
+  void startTimer() {
+    _timer = new Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer timer) => setState(
+        () {
+          if (_start < 1) {
+            checkAnswer(null);
+          } else {
+            _start = _start - 1;
+          }
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    startTimer();
+    super.initState();
+  }
+
+  void displayResult() {
+    _timer.cancel();
+    String _result;
+    AlertType _resultType;
+    if (_correct >= 8) {
+      _result = "You won!";
+      _resultType = AlertType.success;
+    } else {
+      _result = "You lose!";
+      _resultType = AlertType.error;
     }
-    else{
-      score.add(
-          Container(
+    Alert(
+      context: context,
+      type: _resultType,
+      title: _result,
+      desc: "Who Wants to Be a Millionaire",
+      style: AlertStyle(
+          backgroundColor: Colors.blueGrey[900],
+          isCloseButton: false,
+          descStyle: TextStyle(color: Colors.white, fontSize: 10.0),
+          titleStyle: TextStyle(color: Colors.white),
+        isOverlayTapDismiss: false,
+      ),
+      buttons: [
+        DialogButton(
+          child: Text(
+            "Play again",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => restartGame(),
+          gradient: LinearGradient(colors: [
+            Color.fromRGBO(116, 116, 191, 1.0),
+            Color.fromRGBO(52, 138, 199, 1.0)
+          ]),
+        )
+      ],
+    ).show();
+  }
+
+  void checkAnswer(String choice) {
+    if(_qNumLocal<=14)
+      setState(() {
+        if (choice == quiz
+            .getQuestion()
+            .answer) {
+          _correct++;
+          score.add(Container(
+            height: 18.0,
+            width: 18.0,
+            margin: EdgeInsets.fromLTRB(0, 0, 0, 3),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100), color: Colors.green),
+            child: Center(
+              child: Text(
+                quiz.getQuestionNumber().toString(),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ));
+        } else {
+          score.add(Container(
             height: 18.0,
             width: 18.0,
             margin: EdgeInsets.fromLTRB(0, 0, 0, 3),
@@ -87,14 +157,16 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
               ),
             ),
           ));
+        }
+        _qNumLocal++;
+        quiz.nextQuestion();
+        resetTimer();
+      });
+    if(_qNumLocal>=15) {displayResult(); return;}
     }
-    quiz.nextQuestion();
-    //countDownTimer();
-    });
-  }
 
 
-  List<Widget> score = [ ];
+  List<Widget> score = [];
 
   @override
   Widget build(BuildContext context) {
@@ -120,19 +192,9 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                     color: Colors.white,
                     child: ClipRRect(
                       child: Center(
-                        child: Container(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CountdownFormatted(
-                              duration: Duration(seconds: 10),
-                              builder: (BuildContext ctx, String remaining) {
-                                return Text(
-                                  remaining,
-                                  style: TextStyle(fontSize: 30),
-                                ); // 01:00:00
-                              },
-                            ),
-                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text("$_start",style: TextStyle(fontSize: 25.0,fontWeight: FontWeight.bold),),
                         ),
                       ),
                     ),
@@ -163,7 +225,9 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                         width: 250,
                         height: 60,
                         child: FlatButton(
-                          onPressed: () {checkAnswer(quiz.getQuestion().option1);},
+                          onPressed: () {
+                            checkAnswer(quiz.getQuestion().option1);
+                          },
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25.0),
                               side: BorderSide(color: Colors.grey)),
@@ -185,7 +249,7 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                         height: 60,
                         child: FlatButton(
                           onPressed: () {
-                           checkAnswer(quiz.getQuestion().option2);
+                            checkAnswer(quiz.getQuestion().option2);
                           },
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25.0),
@@ -211,7 +275,9 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                         width: 250,
                         height: 60,
                         child: FlatButton(
-                          onPressed: (){checkAnswer(quiz.getQuestion().option3);},
+                          onPressed: () {
+                            checkAnswer(quiz.getQuestion().option3);
+                          },
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25.0),
                               side: BorderSide(color: Colors.grey)),
@@ -232,7 +298,9 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                         width: 250,
                         height: 60,
                         child: FlatButton(
-                          onPressed: (){checkAnswer(quiz.getQuestion().option4);},
+                          onPressed: () {
+                            checkAnswer(quiz.getQuestion().option4);
+                          },
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25.0),
                               side: BorderSide(color: Colors.grey)),
@@ -260,23 +328,4 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
       ),
     );
   }
-}
-
-Widget get scoreElem {
-  return Container(
-    height: 18.0,
-    width: 18.0,
-    margin: EdgeInsets.fromLTRB(0, 0, 0, 3),
-    decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100), color: Colors.green),
-    child: Center(
-      child: Text(
-        "1",
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    ),
-  );
 }
