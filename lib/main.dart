@@ -11,7 +11,7 @@ void main() {
       .then((_) {
     runApp(new MaterialApp(
       title: 'WWTBAM',
-      theme: ThemeData.dark(),
+      theme: ThemeData(fontFamily: 'Source Sans Pro',brightness: Brightness.dark),
       home: HomePage(),
     ));
   });
@@ -112,6 +112,17 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
           onPressed: () => restartGame(),
+          gradient: LinearGradient(colors: [
+            Color.fromRGBO(116, 116, 191, 1.0),
+            Color.fromRGBO(52, 138, 199, 1.0)
+          ]),
+        ),
+        DialogButton(
+          child: Text(
+            "Quit game",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
           gradient: LinearGradient(colors: [
             Color.fromRGBO(116, 116, 191, 1.0),
             Color.fromRGBO(52, 138, 199, 1.0)
@@ -244,7 +255,7 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                             child: Text(
                               quiz.getQuestion().option1,
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
+                                  TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
                             ),
                           ),
                         ),
@@ -267,7 +278,7 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                             child: Text(
                               quiz.getQuestion().option2,
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
+                              TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
                             ),
                           ),
                         ),
@@ -294,7 +305,7 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                             child: Text(
                               quiz.getQuestion().option3,
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
+                              TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
                             ),
                           ),
                         ),
@@ -317,7 +328,7 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                             child: Text(
                               quiz.getQuestion().option4,
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
+                              TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
                             ),
                           ),
                         ),
@@ -345,7 +356,6 @@ class HomePage extends StatelessWidget {
         body: Container(
           child: Center(
             child: FlatButton(
-              color: Colors.blueGrey[900],
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5.0),
                     side: BorderSide(color: Colors.grey)),
@@ -355,8 +365,8 @@ class HomePage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 30.0,
                     fontWeight: FontWeight.w900,
+                    fontFamily: "Pacifico",
                     color: Colors.white,
-                    backgroundColor: Colors.blueGrey[900],
                   ),),
                 ),
                 onPressed: () => Navigator.push(context,
