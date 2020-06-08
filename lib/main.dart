@@ -9,19 +9,23 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft])
       .then((_) {
-    runApp(new WWTBAM());
+    runApp(new MaterialApp(
+      title: 'WWTBAM',
+      theme: ThemeData.dark(),
+      home: HomePage(),
+    ));
   });
 }
 
-class WWTBAM extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData.dark(),
-      home: WWTBAMGame(),
-    );
-  }
-}
+//class WWTBAM extends StatelessWidget {
+//  @override
+//  Widget build(BuildContext context) {
+//    return MaterialApp(
+//      theme: ThemeData.dark(),
+//      home: WWTBAMGame(),
+//    );
+//  }
+//}
 
 class WWTBAMGame extends StatefulWidget {
   @override
@@ -33,10 +37,10 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
   int _correct = 0;
   Timer _timer;
   int _start = 15;
-  int _qNumLocal=0;
+  int _qNumLocal = 0;
 
-  void restartGame() async {
-    _qNumLocal=0;
+  void restartGame() async{
+    _qNumLocal = 0;
     _correct = 0;
     quiz.reset();
     startTimer();
@@ -95,10 +99,10 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
       title: _result,
       desc: "Who Wants to Be a Millionaire",
       style: AlertStyle(
-          backgroundColor: Colors.blueGrey[900],
-          isCloseButton: false,
-          descStyle: TextStyle(color: Colors.white, fontSize: 10.0),
-          titleStyle: TextStyle(color: Colors.white),
+        backgroundColor: Colors.blueGrey[900],
+        isCloseButton: false,
+        descStyle: TextStyle(color: Colors.white, fontSize: 10.0),
+        titleStyle: TextStyle(color: Colors.white),
         isOverlayTapDismiss: false,
       ),
       buttons: [
@@ -118,11 +122,9 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
   }
 
   void checkAnswer(String choice) {
-    if(_qNumLocal<=14)
+    if (_qNumLocal <= 14)
       setState(() {
-        if (choice == quiz
-            .getQuestion()
-            .answer) {
+        if (choice == quiz.getQuestion().answer) {
           _correct++;
           score.add(Container(
             height: 18.0,
@@ -162,9 +164,11 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
         quiz.nextQuestion();
         resetTimer();
       });
-    if(_qNumLocal>=15) {displayResult(); return;}
+    if (_qNumLocal >= 15) {
+      displayResult();
+      return;
     }
-
+  }
 
   List<Widget> score = [];
 
@@ -194,7 +198,11 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
                       child: Center(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text("$_start",style: TextStyle(fontSize: 25.0,fontWeight: FontWeight.bold),),
+                          child: Text(
+                            "$_start",
+                            style: TextStyle(
+                                fontSize: 25.0, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
@@ -327,5 +335,39 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
         ),
       ),
     );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Container(
+          child: Center(
+            child: FlatButton(
+              color: Colors.blueGrey[900],
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0),
+                    side: BorderSide(color: Colors.grey)),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("Start Game",
+                  style: TextStyle(
+                    fontSize: 30.0,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    backgroundColor: Colors.blueGrey[900],
+                  ),),
+                ),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => WWTBAMGame()))),
+          ),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage('images/background.png'), fit: BoxFit.cover),
+          ),
+          constraints: BoxConstraints.expand(),
+        ),
+      );
   }
 }

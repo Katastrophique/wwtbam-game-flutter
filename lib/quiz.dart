@@ -9,7 +9,7 @@ class Quiz
   Question("Who received the first Jnanpith award?","G. Sankara Kurup","Krishna Sobti","Ashapoorna Devi","None of these","G. Sankara Kurup"),
   Question("For Which book did VS Naipaul got Nobel Prize?","A House for Mr Biswas","Miguel Street","In a Free State","None of these","In a Free State"),
 
-  Question("What was the original name of renowned Hindi and Urdu writer Munshi Premchand?","Prem Das","Dhanpat Rai" "Shrivastava","Khwaja Ahmed","None of these","Dhanpat Rai"),
+  Question("What was the original name of renowned Hindi and Urdu writer Munshi Premchand?","Prem Das","Dhanpat Rai","Khwaja Ahmed","None of these","Dhanpat Rai"),
   Question("Which one is the first novel of Chetan Bhagat?","One Night @ the Call Center","The 3 Mistakes Of My Life","Five Point Someone","None of these","Five Point Someone"),
   Question("Who is the writer of of the book ‘Train to Pakistan’?","Amrita Pritam","Khushwant Singh","R. K. Narayan","None of these","Khushwant Singh"),
   Question("Who is the author of the novel ‘The Inheritance of Loss’?","Amitav Ghosh","Arundhati Roy","Kiran Desai","None of these","Kiran Desai"),
