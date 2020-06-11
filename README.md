@@ -1,5 +1,5 @@
 # WWTBAM Game 
-Who Wants to Be a Millionaire (WWTBAM) game using Flutter.
+Who Wants to Be a Millionaire (WWTBAM) game using Flutter
 
 * *API used:*  [**mcq-quiz-api**](https://github.com/AmeerMuhammed/mcq-quiz-api) - Restful API for Multiple Choice Quiz. Written in Node.js(Express) and hosted in Heroku. https://github.com/AmeerMuhammed/mcq-quiz-api
 
