@@ -13,7 +13,8 @@ dependencies:
   cupertino_icons: ^0.1.2
   dotted_border: ^1.0.5
   rflutter_alert: ^1.0.3
-  countdown_flutter: ^0.1.2
+  http: ^0.12.1
+  flutter_animation_progress_bar: ^1.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,31 +1,25 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:flutter_animation_progress_bar/flutter_animation_progress_bar.dart';
 import 'dart:async';
 import 'quiz.dart';
 
 void main() {
+  quiz.loadQuestion();
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft])
       .then((_) {
     runApp(new MaterialApp(
       title: 'WWTBAM',
-      theme: ThemeData(fontFamily: 'Source Sans Pro',brightness: Brightness.dark),
+      theme:
+          ThemeData(fontFamily: 'Source Sans Pro', brightness: Brightness.dark),
       home: HomePage(),
     ));
   });
 }
-
-//class WWTBAM extends StatelessWidget {
-//  @override
-//  Widget build(BuildContext context) {
-//    return MaterialApp(
-//      theme: ThemeData.dark(),
-//      home: WWTBAMGame(),
-//    );
-//  }
-//}
 
 class WWTBAMGame extends StatefulWidget {
   @override
@@ -33,13 +27,12 @@ class WWTBAMGame extends StatefulWidget {
 }
 
 class _WWTBAMGameState extends State<WWTBAMGame> {
-  Quiz quiz = new Quiz();
   int _correct = 0;
   Timer _timer;
   int _start = 15;
   int _qNumLocal = 0;
 
-  void restartGame() async{
+  void restartGame() async {
     _qNumLocal = 0;
     _correct = 0;
     quiz.reset();
@@ -122,7 +115,8 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
             "Quit game",
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
-          onPressed: () => SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
+          onPressed: () =>
+              SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
           gradient: LinearGradient(colors: [
             Color.fromRGBO(116, 116, 191, 1.0),
             Color.fromRGBO(52, 138, 199, 1.0)
@@ -196,147 +190,157 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              Column(crossAxisAlignment: CrossAxisAlignment.center, children: <
-                  Widget>[
-                Container(
-                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                  width: 55.0,
-                  height: 55.0,
-                  child: DottedBorder(
-                    borderType: BorderType.Circle,
-                    color: Colors.white,
-                    child: ClipRRect(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                      width: 55.0,
+                      height: 55.0,
+                      child: DottedBorder(
+                        borderType: BorderType.Circle,
+                        color: Colors.white,
+                        child: ClipRRect(
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "$_start",
+                                style: TextStyle(
+                                    fontSize: 25.0,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.blueGrey[900],
+                        ),
+                        padding: EdgeInsets.all(10.0),
+                        constraints: BoxConstraints(maxWidth: 550),
+                        child: Center(
                           child: Text(
-                            "$_start",
+                            quiz.getQuestion().questionText,
                             style: TextStyle(
-                                fontSize: 25.0, fontWeight: FontWeight.bold),
+                              fontSize: 20.0,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.blueGrey[900],
+                    Expanded(
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            width: 250,
+                            height: 60,
+                            child: FlatButton(
+                              onPressed: () {
+                                checkAnswer(quiz.getQuestion().option1);
+                              },
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                  side: BorderSide(color: Colors.grey)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  quiz.getQuestion().option1,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w900),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          Container(
+                            width: 250,
+                            height: 60,
+                            child: FlatButton(
+                              onPressed: () {
+                                checkAnswer(quiz.getQuestion().option2);
+                              },
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                  side: BorderSide(color: Colors.grey)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  quiz.getQuestion().option2,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w900),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    padding: EdgeInsets.all(10.0),
-                    constraints: BoxConstraints(maxWidth: 550),
-                    child: Center(
-                      child: Text(
-                        quiz.getQuestion().questionText,
-                        style: TextStyle(
-                          fontSize: 20.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        width: 250,
-                        height: 60,
-                        child: FlatButton(
-                          onPressed: () {
-                            checkAnswer(quiz.getQuestion().option1);
-                          },
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                              side: BorderSide(color: Colors.grey)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              quiz.getQuestion().option1,
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Container(
+                            width: 250,
+                            height: 60,
+                            child: FlatButton(
+                              onPressed: () {
+                                checkAnswer(quiz.getQuestion().option3);
+                              },
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                  side: BorderSide(color: Colors.grey)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  quiz.getQuestion().option3,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w900),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 20,
-                      ),
-                      Container(
-                        width: 250,
-                        height: 60,
-                        child: FlatButton(
-                          onPressed: () {
-                            checkAnswer(quiz.getQuestion().option2);
-                          },
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                              side: BorderSide(color: Colors.grey)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              quiz.getQuestion().option2,
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          Container(
+                            width: 250,
+                            height: 60,
+                            child: FlatButton(
+                              onPressed: () {
+                                checkAnswer(quiz.getQuestion().option4);
+                              },
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                  side: BorderSide(color: Colors.grey)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  quiz.getQuestion().option4,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w900),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: <Widget>[
-                      Container(
-                        width: 250,
-                        height: 60,
-                        child: FlatButton(
-                          onPressed: () {
-                            checkAnswer(quiz.getQuestion().option3);
-                          },
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                              side: BorderSide(color: Colors.grey)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              quiz.getQuestion().option3,
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 20,
-                      ),
-                      Container(
-                        width: 250,
-                        height: 60,
-                        child: FlatButton(
-                          onPressed: () {
-                            checkAnswer(quiz.getQuestion().option4);
-                          },
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                              side: BorderSide(color: Colors.grey)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              quiz.getQuestion().option4,
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w900),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ]),
+                    )
+                  ]),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: score,
@@ -353,31 +357,52 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
-          child: Center(
-            child: FlatButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                    side: BorderSide(color: Colors.grey)),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text("Start Game",
-                  style: TextStyle(
-                    fontSize: 30.0,
-                    fontWeight: FontWeight.w900,
-                    fontFamily: "Pacifico",
-                    color: Colors.white,
-                  ),),
-                ),
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => WWTBAMGame()))),
-          ),
-          decoration: BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage('images/background.png'), fit: BoxFit.cover),
-          ),
-          constraints: BoxConstraints.expand(),
+      body: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+          children: <Widget>[
+            Center(
+              child: FlatButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                      side: BorderSide(color: Colors.grey)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      "Start Game",
+                      style: TextStyle(
+                        fontSize: 30.0,
+                        fontWeight: FontWeight.w900,
+                        fontFamily: "Pacifico",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (quiz.questionsLoaded() == true)
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => WWTBAMGame()));
+                  }),
+            ),
+            Center(
+                child: FAProgressBar(
+                  changeColorValue: 0,
+                  animatedDuration: const Duration(milliseconds: 20000),
+                  progressColor: Colors.grey,
+                  currentValue: 100,
+                  displayText: '%',
+                )),
+          ],
         ),
-      );
+        decoration: BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage('images/background.png'), fit: BoxFit.cover),
+        ),
+        constraints: BoxConstraints.expand(),
+      ),
+    );
   }
 }
