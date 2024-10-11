@@ -1,31 +1,29 @@
-name: wwtbamfluttergame
-description: Who Wants to Be a Millionaire Game
+name: WorkshopFlutter
+description: Qui veut gagner des bactéries
 
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: '>=2.12.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^0.1.2
-  dotted_border: ^1.0.5
-  rflutter_alert: ^1.0.3
-  http: ^0.12.1
-  flutter_animation_progress_bar: ^1.0.0
+  http: ^1.2.2
+  cupertino_icons: ^1.0.8
+  dotted_border: ^2.1.0
+  rflutter_alert: ^2.0.7
+  flutter_animation_progress_bar: ^2.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
 flutter:
-
   uses-material-design: true
   assets:
     - images/
-
 
   fonts:
     - family: Pacifico

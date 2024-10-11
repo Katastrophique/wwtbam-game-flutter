@@ -1,19 +1,21 @@
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-import 'package:flutter_animation_progress_bar/flutter_animation_progress_bar.dart';
+
 import 'dart:async';
 import 'quiz.dart';
+import 'palier_widget.dart'; 
 
 void main() {
-  quiz.loadQuestion();
+   // Charger les questions du quiz
+  quiz.loadQuestions(); 
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft])
       .then((_) {
     runApp(new MaterialApp(
-      title: 'WWTBAM',
+      title: 'Qui veut gagner des bactéries',
       theme:
           ThemeData(fontFamily: 'Source Sans Pro', brightness: Brightness.dark),
       home: HomePage(),
@@ -21,46 +23,31 @@ void main() {
   });
 }
 
-class WWTBAMGame extends StatefulWidget {
+class WorkshopFlutter extends StatefulWidget {
   @override
-  _WWTBAMGameState createState() => _WWTBAMGameState();
+  _WorkshopFlutter createState() => _WorkshopFlutter();
 }
 
-class _WWTBAMGameState extends State<WWTBAMGame> {
+class _WorkshopFlutter extends State<WorkshopFlutter> {
   int _correct = 0;
-  Timer _timer;
+  late Timer _timer;
+  // Timer initial
   int _start = 15;
-  int _qNumLocal = 0;
+   // Numéro local de la question  
+  int _qNumLocal = 0; 
+  // Liste des scores visuels
+  List<Widget> score = [];  
+  // Les paliers sécurisés
+  final List<int> securedPaliers = [1000, 32000];  
+  // Dernier palier sécurisé atteint
+  int lastSecuredPalier = 0;  
 
-  void restartGame() async {
-    _qNumLocal = 0;
-    _correct = 0;
-    quiz.reset();
-    startTimer();
-    score = [];
-    await new Future.delayed(const Duration(seconds: 1));
-    Navigator.pop(context);
-  }
+  @override
+  void initState() {
+    super.initState();
+     // Démarrer le timer
+    startTimer(); 
 
-  void resetTimer() {
-    setState(() {
-      _start = 15;
-    });
-  }
-
-  void startTimer() {
-    _timer = new Timer.periodic(
-      const Duration(seconds: 1),
-      (Timer timer) => setState(
-        () {
-          if (_start < 1) {
-            checkAnswer(null);
-          } else {
-            _start = _start - 1;
-          }
-        },
-      ),
-    );
   }
 
   @override
@@ -69,283 +56,266 @@ class _WWTBAMGameState extends State<WWTBAMGame> {
     super.dispose();
   }
 
-  @override
-  void initState() {
-    startTimer();
-    super.initState();
+  void startTimer() {
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer timer) => setState(() {
+        if (_start < 1) {
+           // Si le timer est écoulé, c'est une mauvaise réponse
+          checkAnswer(null); 
+        } else {
+          _start--;
+        }
+      }),
+    );
   }
 
-  void displayResult() {
+  void resetTimer() {
+    setState(() {
+      // Réinitialiser le timer pour chaque nouvelle question
+      _start = 15;  
+    });
+  }
+
+  void restartGame() async {
+    _qNumLocal = 0;
+    _correct = 0;
+    // Réinitialiser le palier sécurisé
+    lastSecuredPalier = 0; 
+    
+    // Réinitialiser et mélanger les questions
+    quiz.reset(); 
+    startTimer();
+    score = [];
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pop(context);
+  }
+
+  void displayResult(String resultMessage, AlertType resultType) {
     _timer.cancel();
-    String _result;
-    AlertType _resultType;
-    if (_correct >= 8) {
-      _result = "You won!";
-      _resultType = AlertType.success;
-    } else {
-      _result = "You lose!";
-      _resultType = AlertType.error;
-    }
+
+    // Si aucun palier sécurisé n'est atteint, on prend en compte le score actuel
+    int finalScore = lastSecuredPalier > 0 ? lastSecuredPalier : (_qNumLocal * 100);
+
+    List<DialogButton> buttons = [
+      DialogButton(
+        child: Text(
+          "Rejouer",
+          style: TextStyle(color: Colors.white, fontSize: 20),
+        ),
+        onPressed: () => restartGame(),
+        gradient: LinearGradient(colors: [
+          Color.fromRGBO(116, 116, 191, 1.0),
+          Color.fromRGBO(52, 138, 199, 1.0)
+        ]),
+      ),
+    ];
+
     Alert(
       context: context,
-      type: _resultType,
-      title: _result,
-      desc: "Who Wants to Be a Millionaire",
+      type: resultType,
+      title: resultMessage,
+      desc: "Votre score: ${finalScore} Bactéries.",
       style: AlertStyle(
         backgroundColor: Colors.blueGrey[900],
         isCloseButton: false,
-        descStyle: TextStyle(color: Colors.white, fontSize: 10.0),
+        descStyle: TextStyle(color: Colors.white, fontSize: 15.0),
         titleStyle: TextStyle(color: Colors.white),
         isOverlayTapDismiss: false,
       ),
-      buttons: [
-        DialogButton(
-          child: Text(
-            "Play again",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          onPressed: () => restartGame(),
-          gradient: LinearGradient(colors: [
-            Color.fromRGBO(116, 116, 191, 1.0),
-            Color.fromRGBO(52, 138, 199, 1.0)
-          ]),
-        ),
-        DialogButton(
-          child: Text(
-            "Quit game",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          onPressed: () =>
-              SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
-          gradient: LinearGradient(colors: [
-            Color.fromRGBO(116, 116, 191, 1.0),
-            Color.fromRGBO(52, 138, 199, 1.0)
-          ]),
-        )
-      ],
+      buttons: buttons,
     ).show();
   }
 
-  void checkAnswer(String choice) {
-    if (_qNumLocal <= 14)
+  void checkAnswer(String? choice) {
+    if (_qNumLocal < 15) {
       setState(() {
+        // Vérification de la réponse
         if (choice == quiz.getQuestion().answer) {
           _correct++;
-          score.add(Container(
-            height: 18.0,
-            width: 18.0,
-            margin: EdgeInsets.fromLTRB(0, 0, 0, 3),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100), color: Colors.green),
-            child: Center(
-              child: Text(
-                quiz.getQuestionNumber().toString(),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ));
+          score.add(_buildScoreIndicator(Colors.green));
+          
+          // Mise à jour du palier sécurisé
+          updateSecuredPalier();
+          
+          _qNumLocal++;
+          quiz.nextQuestion();
+          resetTimer();
         } else {
-          score.add(Container(
-            height: 18.0,
-            width: 18.0,
-            margin: EdgeInsets.fromLTRB(0, 0, 0, 3),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100), color: Colors.red),
-            child: Center(
-              child: Text(
-                quiz.getQuestionNumber().toString(),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ));
+          // Mauvaise réponse : afficher les résultats immédiatement et terminer le jeu
+          score.add(_buildScoreIndicator(Colors.red));
+          displayResult("Vous avez perdu!", AlertType.error);
         }
-        _qNumLocal++;
-        quiz.nextQuestion();
-        resetTimer();
       });
+    }
+
     if (_qNumLocal >= 15) {
-      displayResult();
-      return;
+      // Si toutes les questions sont répondues, afficher le résultat
+      displayResult("Félicitations! Vous avez gagné!", AlertType.success);
     }
   }
 
-  List<Widget> score = [];
+  void updateSecuredPalier() {
+    // Si le joueur atteint un palier sécurisé, mettre à jour
+    if (_qNumLocal == 4 || _qNumLocal == 9) {  // Correspond aux paliers 5 et 10
+      lastSecuredPalier = securedPaliers[securedPaliers.indexOf(lastSecuredPalier) + 1];
+    }
+  }
 
-  @override
+  Widget _buildScoreIndicator(Color color) {
+    return Container(
+      height: 18.0,
+      width: 18.0,
+      margin: EdgeInsets.fromLTRB(0, 0, 0, 3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(100),
+        color: color,
+      ),
+      child: Center(
+        child: Text(
+          quiz.getQuestionNumber().toString(),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage('images/background.png'), fit: BoxFit.cover),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('images/background.png'), 
+                fit: BoxFit.cover,
+              ),
+            ),
+            constraints: BoxConstraints.expand(),
+            child: SafeArea(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      _buildTimer(),
+                      _buildQuestionContainer(),
+                      _buildOptions(),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                     // Affichage des scores visuels
+                    children: score, 
+                  ),
+                ],
+              ),
+            ),
+          ),
+           // Intégration du PalierWidget
+          PalierWidget(currentLevel: _qNumLocal), 
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimer() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
+      width: 55.0,
+      height: 55.0,
+      child: DottedBorder(
+        borderType: BorderType.Circle,
+        color: Colors.white,
+        child: ClipRRect(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "$_start",
+                style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
         ),
-        constraints: BoxConstraints.expand(),
-        child: SafeArea(
-          child: Row(
+      ),
+    );
+  }
+
+  Widget _buildQuestionContainer() {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.blueGrey[900],
+        ),
+        padding: EdgeInsets.all(10.0),
+        constraints: BoxConstraints(
+          maxWidth: 550, 
+        ),
+        child: Center(
+          child: Text(
+            quiz.getQuestion().questionText,
+            style: TextStyle(
+              fontSize: 20.0,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptions() {
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                      width: 55.0,
-                      height: 55.0,
-                      child: DottedBorder(
-                        borderType: BorderType.Circle,
-                        color: Colors.white,
-                        child: ClipRRect(
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "$_start",
-                                style: TextStyle(
-                                    fontSize: 25.0,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.blueGrey[900],
-                        ),
-                        padding: EdgeInsets.all(10.0),
-                        constraints: BoxConstraints(maxWidth: 550),
-                        child: Center(
-                          child: Text(
-                            quiz.getQuestion().questionText,
-                            style: TextStyle(
-                              fontSize: 20.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                            width: 250,
-                            height: 60,
-                            child: FlatButton(
-                              onPressed: () {
-                                checkAnswer(quiz.getQuestion().option1);
-                              },
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25.0),
-                                  side: BorderSide(color: Colors.grey)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  quiz.getQuestion().option1,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Container(
-                            width: 250,
-                            height: 60,
-                            child: FlatButton(
-                              onPressed: () {
-                                checkAnswer(quiz.getQuestion().option2);
-                              },
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25.0),
-                                  side: BorderSide(color: Colors.grey)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  quiz.getQuestion().option2,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Container(
-                            width: 250,
-                            height: 60,
-                            child: FlatButton(
-                              onPressed: () {
-                                checkAnswer(quiz.getQuestion().option3);
-                              },
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25.0),
-                                  side: BorderSide(color: Colors.grey)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  quiz.getQuestion().option3,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Container(
-                            width: 250,
-                            height: 60,
-                            child: FlatButton(
-                              onPressed: () {
-                                checkAnswer(quiz.getQuestion().option4);
-                              },
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25.0),
-                                  side: BorderSide(color: Colors.grey)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  quiz.getQuestion().option4,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  ]),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: score,
-              )
+              _buildOptionButton(quiz.getQuestion().option1),
+              _buildOptionButton(quiz.getQuestion().option2),
             ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              _buildOptionButton(quiz.getQuestion().option3),
+              _buildOptionButton(quiz.getQuestion().option4),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionButton(String optionText) {
+    return Container(
+      width: 250,
+      height: 60,
+      child: ElevatedButton( 
+        onPressed: () {
+          checkAnswer(optionText);
+        },
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25.0),
+            side: BorderSide(color: Colors.grey),
+          ),
+          padding: const EdgeInsets.all(8.0),
+
+        ),
+
+        child: Text(
+          optionText,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16.0,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ),
@@ -358,50 +328,48 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/background.png'), 
+            fit: BoxFit.cover,
+          ),
+        ),
+        constraints: BoxConstraints.expand(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 
           children: <Widget>[
             Center(
-              child: FlatButton(
+              child: ElevatedButton(  
+                style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                      side: BorderSide(color: Colors.grey)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Start Game",
-                      style: TextStyle(
-                        fontSize: 30.0,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: "Pacifico",
-                        color: Colors.white,
-                      ),
-                    ),
+                    borderRadius: BorderRadius.circular(5.0),
+                    side: BorderSide(color: Colors.grey),
                   ),
-                  onPressed: () {
-                    if (quiz.questionsLoaded() == true)
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => WWTBAMGame()));
-                  }),
+                  padding: const EdgeInsets.all(8.0),
+                ),
+                child: Text(
+                  "Start Game",
+                  style: TextStyle(
+                    fontSize: 30.0,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: "Pacifico",
+                    color: Colors.white,
+                  ),
+                ),
+
+                onPressed: () {
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => WorkshopFlutter()),
+                  );
+                },
+              ),
             ),
-            Center(
-                child: FAProgressBar(
-                  changeColorValue: 0,
-                  animatedDuration: const Duration(milliseconds: 20000),
-                  progressColor: Colors.grey,
-                  currentValue: 100,
-                  displayText: '%',
-                )),
           ],
         ),
-        decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage('images/background.png'), fit: BoxFit.cover),
-        ),
-        constraints: BoxConstraints.expand(),
+
       ),
     );
   }
