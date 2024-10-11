@@ -5,19 +5,20 @@ class Quiz {
   bool _questionsLoaded = false;
   int _questionNum = 0;
   List<Question> _questionBank = [];
+  // Variable pour suivre la question précédente
+  int _previousQuestionNum = -1;
   bool _fiftyFiftyUsed = false;
   bool _seventyFiveTwentyFiveUsed = false;
 
   // Constructeur pour initialiser les questions
   Quiz() {
     loadQuestions();
-  } 
+  }
 
   void loadQuestions() {
     _questionBank = [
       Question("Quel est le plus grand organe du corps humain ?", "Cœur", "Peau", "Foie", "Poumon", "Peau"),
       Question("Quelle vitamine est produite lorsque la peau est exposée au soleil ?", "A", "B", "C", "D", "D"),
-      Question("Quel est le principal gaz présent dans l'air que nous respirons ?", "Oxygène", "Azote", "Dioxyde de carbone", "Hélium", "Azote"),
       Question("Quel organe est responsable de la production de l'insuline ?", "Foie", "Pancréas", "Estomac", "Reins", "Pancréas"),
       Question("Quel est le groupe sanguin universel donneur ?", "A", "B", "AB", "O", "O"),
       Question("Quelle maladie est causée par le virus de l'immunodéficience humaine (VIH) ?", "Cancer", "Diabète", "SIDA", "Grippe", "SIDA"),
@@ -29,23 +30,31 @@ class Quiz {
       Question("Quel est le nom de la maladie caractérisée par une augmentation anormale de la pression artérielle ?", "Hypotension", "Hypertension", "Hypoglycémie", "Hyperglycémie", "Hypertension"),
       Question("Quel organe filtre le sang ?", "Cœur", "Foie", "Reins", "Poumons", "Reins"),
       Question("Quel est le type de cellules responsables de la défense immunitaire ?", "Globules rouges", "Globules blancs", "Plaquettes", "Thrombocytes", "Globules blancs"),
-      Question("Quelle est la distance approximative entre la Terre et la Lune ?", "384 400 km", "1 000 000 km", "150 000 km", "500 000 km", "384 400 km"),
-      Question("Quel est l'élément chimique représenté par le symbole 'O' ?", "Or", "Oxygène", "Osmium", "Organium", "Oxygène"),
-      Question("Quel est le plus grand désert du monde ?", "Sahara", "Arctique", "Antarctique", "Gobi", "Antarctique"),
-      Question("Quel est le nom du processus par lequel les plantes fabriquent leur propre nourriture ?", "Respiration", "Photosynthèse", "Transpiration", "Digestion", "Photosynthèse"),
-      Question("Quel est le métal liquide à température ambiante ?", "Plomb", "Mercure", "Fer", "Aluminium", "Mercure"),
-      Question("Quelle planète est connue comme la planète rouge ?", "Terre", "Vénus", "Mars", "Jupiter", "Mars"),
-      Question("Quel est le plus grand océan du monde ?", "Atlantique", "Arctique", "Pacifique", "Indien", "Pacifique"),
-      Question("Quel pays est à l'origine des Jeux Olympiques ?", "Italie", "Grèce", "Chine", "France", "Grèce"),
-      Question("Quel est le plus petit os du corps humain ?", "Scaphoïde", "Stapes", "Tibia", "Radius", "Stapes"),
-      Question("Quelle est l'unité de base de la vie ?", "Cellule", "Atome", "Molécule", "Organe", "Cellule")
+      Question("Quel est le rôle principal des globules rouges ?", "Transport d'oxygène", "Défense immunitaire", "Coagulation", "Régulation de la température", "Transport d'oxygène"),
+      Question("Quel est le nom scientifique de la grippe ?", "Influenza", "Varicelle", "COVID-19", "Hépatite B", "Influenza"),
+      Question("Comment appelle-t-on l’inflammation des articulations ?", "Ostéoporose", "Arthrite", "Scoliose", "Fibromyalgie", "Arthrite"),
+      Question("Quel est l'organe principalement affecté par la cirrhose ?", "Pancréas", "Foie", "Cerveau", "Reins", "Foie"),
+      Question("Quel est l'agent responsable du paludisme ?", "Virus", "Bactérie", "Parasite", "Champignon", "Parasite"),
+      Question("Quel est le traitement standard pour une infection bactérienne ?", "Antibiotiques", "Antiviraux", "Antifongiques", "Vaccins", "Antibiotiques"),
+      Question("Quel est le nom médical pour une crise cardiaque ?", "Angine", "Infarctus du myocarde", "AVC", "Embolie", "Infarctus du myocarde"),
+      Question("Quel élément est essentiel pour la formation de l'hémoglobine ?", "Sodium", "Fer", "Calcium", "Magnésium", "Fer"),
+      Question("Comment appelle-t-on une fracture où l’os traverse la peau ?", "Fracture fermée", "Fracture ouverte", "Fracture comminutive", "Fracture incomplète", "Fracture ouverte"),
+      Question("Quel est le test principal pour diagnostiquer une infection pulmonaire ?", "IRM", "Radiographie thoracique", "Scanner", "Échographie", "Radiographie thoracique"),
+      Question("Quel organe est responsable de la régulation des niveaux de sucre dans le sang ?", "Foie", "Pancréas", "Reins", "Cerveau", "Pancréas"),
+      Question("Quel est le nom de l'hormone régulant les niveaux de sucre dans le sang ?", "Insuline", "Adrénaline", "Thyroxine", "Testostérone", "Insuline"),
+      Question("Quel est le traitement préventif contre la variole ?", "Antibiotique", "Vaccination", "Antiviral", "Repose", "Vaccination"),
+      Question("Quelle maladie pulmonaire est causée par une exposition à long terme à des irritants ?", "Asthme", "Bronchite chronique", "Pneumonie", "Emphysème", "Bronchite chronique"),
+      Question("Quel est le nom scientifique de la maladie des os fragiles ?", "Ostéoporose", "Arthrose", "Scoliose", "Fibromyalgie", "Ostéoporose"),
+      Question("Comment s'appelle l'évaluation de l'activité électrique du cœur ?", "Échocardiogramme", "Électrocardiogramme", "Scanner", "IRM", "Électrocardiogramme"),
+      Question("Quel est le principal minéral nécessaire à la formation des os ?", "Phosphore", "Fer", "Calcium", "Sodium", "Calcium"),
+      Question("Quel vaccin protège contre le tétanos ?", "DTaP", "MMR", "BCG", "Polio", "DTaP"),
+      Question("Quel est le nom du processus par lequel le corps élimine les toxines par le foie ?", "Métabolisme", "Désintoxication", "Filtration", "Élimination", "Désintoxication"),
+      Question("Quelle partie du cerveau est responsable de la mémoire ?", "Cervelet", "Hippocampe", "Hypothalamus", "Thalamus", "Hippocampe"),
     ];
-    _questionBank.shuffle();
+    _questionBank.shuffle(); // Mélanger les questions
 
     _questionsLoaded = true;
   }
-
-    
 
   Question getQuestion() {
     return _questionBank[_questionNum];
@@ -55,16 +64,24 @@ class Quiz {
     return _questionNum + 1;
   }
 
+  // Passer à la prochaine question en s'assurant qu'elle soit différente de la précédente
   void nextQuestion() {
-    if (_questionNum < _questionBank.length - 1) {
-      _questionNum++;
+    _previousQuestionNum = _questionNum; // Sauvegarder la question précédente
+
+    if (_questionBank.length > 1) {
+      do {
+        _questionNum = Random().nextInt(_questionBank.length);
+      } while (_questionNum == _previousQuestionNum);
     }
   }
 
+  // Réinitialisation du quiz
   void reset() {
     _questionNum = 0;
+    _previousQuestionNum = -1; // Réinitialiser la question précédente
     _fiftyFiftyUsed = false;
     _seventyFiveTwentyFiveUsed = false;
+    _questionBank.shuffle(); // Re-mélanger les questions lors du reset
   }
 
   bool questionsLoaded() {
@@ -85,7 +102,11 @@ class Quiz {
 
       // Ajouter une mauvaise réponse au hasard
       options.removeAt(correctAnswerIndex);
-      remainingOptions.add(options[Random().nextInt(options.length)]);
+
+      if (options.isNotEmpty) {
+        remainingOptions.add(options[Random().nextInt(options.length)]);
+      }
+
       return remainingOptions;
     }
     return [];
@@ -101,10 +122,15 @@ class Quiz {
         getQuestion().option4
       ];
       int correctAnswerIndex = options.indexOf(getQuestion().answer);
-      options.removeAt((Random().nextInt(options.length) == correctAnswerIndex) ? 0 : correctAnswerIndex);
-      options.removeAt(Random().nextInt(options.length));
-      // retourner les réponses restantes
-      return options; 
+      options.removeAt(correctAnswerIndex);
+
+      // Supprimer deux mauvaises réponses aléatoirement
+      if (options.length >= 2) {
+        options.removeAt(Random().nextInt(options.length));
+      }
+
+      options.insert(0, getQuestion().answer); // Ajoute la réponse correcte
+      return options;
     }
     return [];
   }

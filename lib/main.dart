@@ -1,23 +1,21 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-
 import 'dart:async';
+import 'dart:math';
 import 'quiz.dart';
-import 'palier_widget.dart'; 
+import 'palier_widget.dart';
 
 void main() {
-   // Charger les questions du quiz
-  quiz.loadQuestions(); 
+  // Charger les questions du quiz
+  quiz.loadQuestions();
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft])
       .then((_) {
-    runApp(new MaterialApp(
+    runApp(MaterialApp(
       title: 'Qui veut gagner des bactéries',
-      theme:
-          ThemeData(fontFamily: 'Source Sans Pro', brightness: Brightness.dark),
+      theme: ThemeData(fontFamily: 'Source Sans Pro', brightness: Brightness.dark),
       home: HomePage(),
     ));
   });
@@ -33,21 +31,28 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
   late Timer _timer;
   // Timer initial
   int _start = 15;
-   // Numéro local de la question  
-  int _qNumLocal = 0; 
+  // Numéro local de la question
+  int _qNumLocal = 0;
   // Liste des scores visuels
-  List<Widget> score = [];  
+  List<Widget> score = [];
   // Les paliers sécurisés
-  final List<int> securedPaliers = [1000, 32000];  
+  final List<int> securedPaliers = [1000, 32000];
   // Dernier palier sécurisé atteint
-  int lastSecuredPalier = 0;  
+  int lastSecuredPalier = 0;
+  bool _joker5050Used = false; // État du joker 50:50
+  bool _audienceUsed = false; // État du joker vote du public
+  List<String> _optionsVisible = []; // Options visibles après 50:50
 
   @override
   void initState() {
     super.initState();
-     // Démarrer le timer
-    startTimer(); 
-
+    _optionsVisible = [
+      quiz.getQuestion().option1,
+      quiz.getQuestion().option2,
+      quiz.getQuestion().option3,
+      quiz.getQuestion().option4,
+    ]; // Initialisation des options visibles
+    startTimer();
   }
 
   @override
@@ -61,8 +66,8 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
       const Duration(seconds: 1),
       (Timer timer) => setState(() {
         if (_start < 1) {
-           // Si le timer est écoulé, c'est une mauvaise réponse
-          checkAnswer(null); 
+          // Si le timer est écoulé, c'est une mauvaise réponse
+          checkAnswer(null);
         } else {
           _start--;
         }
@@ -73,22 +78,35 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
   void resetTimer() {
     setState(() {
       // Réinitialiser le timer pour chaque nouvelle question
-      _start = 15;  
+      _start = 15;
     });
   }
 
   void restartGame() async {
-    _qNumLocal = 0;
-    _correct = 0;
-    // Réinitialiser le palier sécurisé
-    lastSecuredPalier = 0; 
-    
-    // Réinitialiser et mélanger les questions
-    quiz.reset(); 
-    startTimer();
-    score = [];
-    await Future.delayed(const Duration(seconds: 1));
-    Navigator.pop(context);
+    setState(() {
+      _qNumLocal = 0;
+      _correct = 0;
+      lastSecuredPalier = 0; // Réinitialiser le palier sécurisé
+      quiz.reset(); // Réinitialiser et mélanger les questions
+      score = [];
+      resetTimer();
+      _joker5050Used = false;
+      _audienceUsed = false;
+      _optionsVisible = [
+        quiz.getQuestion().option1,
+        quiz.getQuestion().option2,
+        quiz.getQuestion().option3,
+        quiz.getQuestion().option4,
+      ]; // Réinitialiser les options visibles
+    });
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Utiliser Navigator.pushReplacement pour redémarrer le jeu
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => WorkshopFlutter()),
+    );
   }
 
   void displayResult(String resultMessage, AlertType resultType) {
@@ -128,19 +146,27 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
   }
 
   void checkAnswer(String? choice) {
-    if (_qNumLocal < 15) {
+    if (_qNumLocal < 15 && choice != null) {
       setState(() {
         // Vérification de la réponse
         if (choice == quiz.getQuestion().answer) {
           _correct++;
           score.add(_buildScoreIndicator(Colors.green));
-          
+
           // Mise à jour du palier sécurisé
           updateSecuredPalier();
-          
+
           _qNumLocal++;
           quiz.nextQuestion();
           resetTimer();
+
+          // Réinitialiser les options visibles
+          _optionsVisible = [
+            quiz.getQuestion().option1,
+            quiz.getQuestion().option2,
+            quiz.getQuestion().option3,
+            quiz.getQuestion().option4,
+          ];
         } else {
           // Mauvaise réponse : afficher les résultats immédiatement et terminer le jeu
           score.add(_buildScoreIndicator(Colors.red));
@@ -182,7 +208,8 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
       ),
     );
   }
- @override
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -190,7 +217,7 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('images/background.png'), 
+                image: AssetImage('images/background.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -205,19 +232,20 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
                       _buildTimer(),
                       _buildQuestionContainer(),
                       _buildOptions(),
+                      _buildJokers(),
                     ],
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                     // Affichage des scores visuels
-                    children: score, 
+                    // Affichage des scores visuels
+                    children: score,
                   ),
                 ],
               ),
             ),
           ),
-           // Intégration du PalierWidget
-          PalierWidget(currentLevel: _qNumLocal), 
+          // Intégration du PalierWidget
+          PalierWidget(currentLevel: _qNumLocal),
         ],
       ),
     );
@@ -255,7 +283,7 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
         ),
         padding: EdgeInsets.all(10.0),
         constraints: BoxConstraints(
-          maxWidth: 550, 
+          maxWidth: 550,
         ),
         child: Center(
           child: Text(
@@ -277,15 +305,19 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              _buildOptionButton(quiz.getQuestion().option1),
-              _buildOptionButton(quiz.getQuestion().option2),
+              if (_optionsVisible.contains(quiz.getQuestion().option1))
+                _buildOptionButton(quiz.getQuestion().option1),
+              if (_optionsVisible.contains(quiz.getQuestion().option2))
+                _buildOptionButton(quiz.getQuestion().option2),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              _buildOptionButton(quiz.getQuestion().option3),
-              _buildOptionButton(quiz.getQuestion().option4),
+              if (_optionsVisible.contains(quiz.getQuestion().option3))
+                _buildOptionButton(quiz.getQuestion().option3),
+              if (_optionsVisible.contains(quiz.getQuestion().option4))
+                _buildOptionButton(quiz.getQuestion().option4),
             ],
           ),
         ],
@@ -297,7 +329,7 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
     return Container(
       width: 250,
       height: 60,
-      child: ElevatedButton( 
+      child: ElevatedButton(
         onPressed: () {
           checkAnswer(optionText);
         },
@@ -307,9 +339,7 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
             side: BorderSide(color: Colors.grey),
           ),
           padding: const EdgeInsets.all(8.0),
-
         ),
-
         child: Text(
           optionText,
           style: TextStyle(
@@ -321,6 +351,84 @@ class _WorkshopFlutter extends State<WorkshopFlutter> {
       ),
     );
   }
+
+  // Widgets pour les jokers
+  Widget _buildJokers() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        ElevatedButton(
+          onPressed: _joker5050Used ? null : () {
+            setState(() {
+              _joker5050Used = true;
+              // Logique du 50:50
+              _optionsVisible = _applyFiftyFifty();
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _joker5050Used ? Colors.grey : Colors.blue, // Grise le bouton si utilisé
+            padding: EdgeInsets.symmetric(horizontal: 20),
+          ),
+          child: Text("50:50"),
+        ),
+        SizedBox(width: 10),
+        ElevatedButton(
+          onPressed: _audienceUsed ? null : () {
+            setState(() {
+              _audienceUsed = true;
+              _showAudienceVote();
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _audienceUsed ? Colors.grey : Colors.blue, // Grise le bouton si utilisé
+            padding: EdgeInsets.symmetric(horizontal: 20),
+          ),
+          child: Text("Vote du public"),
+        ),
+      ],
+    );
+  }
+
+  List<String> _applyFiftyFifty() {
+    // Fonctionnalité du joker 50:50, garde la bonne réponse et une mauvaise réponse
+    List<String> options = [
+      quiz.getQuestion().option1,
+      quiz.getQuestion().option2,
+      quiz.getQuestion().option3,
+      quiz.getQuestion().option4
+    ];
+    options.removeWhere((option) => option != quiz.getQuestion().answer);
+
+    // Ajoute une mauvaise réponse au hasard
+    var incorrectOptions = [
+      quiz.getQuestion().option1,
+      quiz.getQuestion().option2,
+      quiz.getQuestion().option3,
+      quiz.getQuestion().option4
+    ];
+    incorrectOptions.removeWhere((option) => option == quiz.getQuestion().answer);
+    options.add(incorrectOptions[Random().nextInt(incorrectOptions.length)]);
+    return options;
+  }
+
+  void _showAudienceVote() {
+    // Simulation d'un vote du public (résultats aléatoires)
+    Alert(
+      context: context,
+      title: "Résultat du vote",
+      desc: "A: 40%\nB: 30%\nC: 20%\nD: 10%",
+      buttons: [
+        DialogButton(
+          child: Text(
+            "OK",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+          width: 120,
+        )
+      ],
+    ).show();
+  }
 }
 
 class HomePage extends StatelessWidget {
@@ -330,17 +438,16 @@ class HomePage extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/background.png'), 
+            image: AssetImage('images/background.png'),
             fit: BoxFit.cover,
           ),
         ),
         constraints: BoxConstraints.expand(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
           children: <Widget>[
             Center(
-              child: ElevatedButton(  
+              child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5.0),
@@ -357,9 +464,7 @@ class HomePage extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-
                 onPressed: () {
-
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => WorkshopFlutter()),
@@ -369,7 +474,6 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
-
       ),
     );
   }
