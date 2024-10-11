@@ -1,4 +1,4 @@
-package io.github.ameermuhammed.wwtbamfluttergame
+package io.github.katastrophe.wwtbamfluttergame
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
